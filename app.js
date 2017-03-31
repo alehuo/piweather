@@ -8,10 +8,10 @@ var express = require('express');
 var twig = require('twig');
 //Path
 var path = require('path')
-//MySQL
-var mysql = require('mysql');
+//Schedule
+var schedule = require('node-schedule');
 
-//Initialize app
+//Initialize application
 var app = express();
 
 //App configuration
@@ -22,13 +22,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 //App port
 var port = 3000
 
-//Database configuration
-var dbConfiguration = require('./config/database.json');
-var connection = mysql.createConnection(dbConfiguration);
-connection.connect();
+//PostgreSQl pool
+var pool = require('./lib/database.js');
 
-//We should use pooling to improve database performance.
-
+function currentReading() {}
 
 //Routes
 
@@ -36,23 +33,26 @@ connection.connect();
  * Default route
  */
 app.get('/', (request, response) => {
-    //Returns all users from the database
-    response.render('index');
-});
+    pool.connect(function(err, client, done) {
+        if (err) {
+            return console.error('Error fetching client', err);
+        }
 
-/**
- * List all users from database
- */
-app.get('/users', (request, response) => {
-    //Returns all users from the database
-    connection.query('SELECT * FROM users', function(error, results, fields) {
-        if (error)
-            throw error;
-        response.render('users', {users: results});
+        client.query('SELECT * FROM data ORDER BY id DESC LIMIT 1', [], function(err, result) {
+            done(err);
+
+            if (err) {
+                return console.error('Query error', err);
+            }
+            response.render('index', result.rows[0]);
+        });
     });
-
 });
 
+//Poll sensors every x minutes
+var sensorPoll = schedule.scheduleJob('*/5 * * * *', function() {
+    console.log('Logging sensor data');
+});
 
 /**
  * Start server
@@ -64,3 +64,35 @@ app.listen(port, (err) => {
 
     console.log('Listening on ' + port);
 })
+
+/*
+
+FUNCTIONS
+
+ */
+
+/**
+ * Log a reading from the sensors.
+ * @param  {[type]} temperature [description]
+ * @param  {[type]} humidity    [description]
+ * @param  {[type]} pressure    [description]
+ * @return {[type]}             [description]
+ */
+function log(temperature, humidity, pressure) {
+    pool.connect(function(err, client, done) {
+        if (err) {
+            return console.error('Error fetching client', err);
+        }
+
+        client.query('INSERT INTO data (unixtimestamp, temperature, humidity, pressure) VALUES($1, $2, $3, $4)', [
+            '1', temperature, humidity, pressure
+        ], function(err, result) {
+            done(err);
+
+            if (err) {
+                return console.error('Query error', err);
+            }
+            console.log(result);
+        });
+    });
+}

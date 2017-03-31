@@ -1,13 +1,7 @@
 {% extends "base.twig" %}
 {% block content %}
-    <h1>Hello world</h1>
-    <p>
-        A web server built using Node.JS and is currently configured to use these extensions:
-        <br/>
-        <ul>
-            <li>express</li>
-            <li>twig</li>
-            <li>mysql</li>
-        </ul>
-    </p>
+    <h1>PiWeather</h1>
+    Temperature: {{temperature}} &deg;C<br/>
+    Pressure: {{pressure}} hPa<br/>
+    Humidity: {{humidity}} %
 {% endblock %}
