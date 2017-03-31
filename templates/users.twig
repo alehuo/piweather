@@ -1,0 +1,11 @@
+{% extends "base.twig" %}
+{% block content %}
+    <h1>List of users in database</h1>
+    {% if users %}
+        <ul>
+            {% for user in users %}
+                <li>{{user.username}}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
