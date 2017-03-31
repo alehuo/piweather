@@ -1,5 +1,5 @@
 {
-  "name": "@alehuo/webapp",
+  "name": "@alehuo/piweather",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -13,6 +13,7 @@
     "express": "^4.15.2",
     "html": "^1.0.0",
     "mysql": "^2.13.0",
+    "nodemailer": "^3.1.8",
     "twig": "^1.10.4"
   }
 }
