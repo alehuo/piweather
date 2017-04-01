@@ -12,11 +12,11 @@ var path = require('path')
 var schedule = require('node-schedule');
 //SQLite3
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.cached.Database('weatherdata.db');
+var db = new sqlite3.cached.Database('weatherdata.sqlite');
 
 //Create tables
 db.serialize(function() {
-    db.run('CREATE TABLE if not exists data (id INTEGER PRIMARY KEY, unixtimestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
+    db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, unixtimestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
 });
 
 //Initialize the application
@@ -29,17 +29,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //App port
 var port = 3000
-
-//Routes
-
-/**
- * Default route
- */
-app.get('/', (request, response) => {
-    currentReading(function(res) {
-        response.render('index', res);
-    });
-});
 
 /**
  * Schedule a new task to poll the sensors every 5 minutes. Update variables as needed
@@ -54,17 +43,6 @@ var sensorPoll = schedule.scheduleJob('*/5 * * * *', function() {
     log(temp, humid, press);
     console.log('Done logging sensor data.');
 });
-
-/**
- * Start server
- */
-app.listen(port, (err) => {
-    if (err) {
-        return console.log('Error', err);
-    }
-
-    console.log('Listening on port %d', port);
-})
 
 /*
 
@@ -113,3 +91,25 @@ function getAll(fn) {
     });
 
 }
+
+//Routes
+
+/**
+ * Default route
+ */
+app.get('/', (request, response) => {
+    currentReading(function(res) {
+        response.render('index', res);
+    });
+});
+
+/**
+ * Start server
+ */
+app.listen(port, (err) => {
+    if (err) {
+        return console.log('Error', err);
+    }
+
+    console.log('Listening on port %d', port);
+})
