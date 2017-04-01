@@ -1,7 +1,9 @@
 {% extends "base.twig" %}
 {% block content %}
     <h1>PiWeather</h1>
-    Temperature: {{temperature}} &deg;C<br/>
-    Pressure: {{pressure}} hPa<br/>
-    Humidity: {{humidity}} %
+    <p>
+    Temperature: <b>{% if temperature %}{{temperature}}{% else %}N/A{% endif %} &deg;C</b><br/>
+    Humidity: <b>{% if humidity %}{{humidity}}{% else %}N/A{% endif %} %</b><br/>
+    Pressure: <b>{% if pressure %}{{pressure}}{% else %}N/A{% endif %} hPa</b>
+    </p>
 {% endblock %}

@@ -10,8 +10,16 @@ var twig = require('twig');
 var path = require('path')
 //Schedule
 var schedule = require('node-schedule');
+//SQLite3
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.cached.Database('weatherdata.db');
 
-//Initialize application
+//Create tables
+db.serialize(function() {
+    db.run('CREATE TABLE if not exists data (id INTEGER PRIMARY KEY, unixtimestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
+});
+
+//Initialize the application
 var app = express();
 
 //App configuration
@@ -22,36 +30,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 //App port
 var port = 3000
 
-//PostgreSQl pool
-var pool = require('./lib/database.js');
-
-function currentReading() {}
-
 //Routes
 
 /**
  * Default route
  */
 app.get('/', (request, response) => {
-    pool.connect(function(err, client, done) {
-        if (err) {
-            return console.error('Error fetching client', err);
-        }
-
-        client.query('SELECT * FROM data ORDER BY id DESC LIMIT 1', [], function(err, result) {
-            done(err);
-
-            if (err) {
-                return console.error('Query error', err);
-            }
-            response.render('index', result.rows[0]);
-        });
+    currentReading(function(res) {
+        response.render('index', res);
     });
 });
 
-//Poll sensors every x minutes
+/**
+ * Schedule a new task to poll the sensors every 5 minutes. Update variables as needed
+ * @return {[type]} [description]
+ */
 var sensorPoll = schedule.scheduleJob('*/5 * * * *', function() {
-    console.log('Logging sensor data');
+    console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
+    //Just for testing purposes
+    var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
+    var humid = parseFloat(Math.random() * 60 + 40).toFixed(2); //Between 40 and 100
+    var press = 1020;
+    log(temp, humid, press);
+    console.log('Done logging sensor data.');
 });
 
 /**
@@ -62,7 +63,7 @@ app.listen(port, (err) => {
         return console.log('Error', err);
     }
 
-    console.log('Listening on ' + port);
+    console.log('Listening on port %d', port);
 })
 
 /*
@@ -79,20 +80,36 @@ FUNCTIONS
  * @return {[type]}             [description]
  */
 function log(temperature, humidity, pressure) {
-    pool.connect(function(err, client, done) {
-        if (err) {
-            return console.error('Error fetching client', err);
-        }
+    console.log('temp: %d, humidity: %d, pressure: %d', temperature, humidity, pressure);
+    var db = new sqlite3.Database('weatherdata.db');
+    var stmt = db.prepare('INSERT INTO data (unixtimestamp, temperature, humidity, pressure) VALUES(?, ?, ?, ?)');
+    stmt.run(Math.floor(new Date().getTime() / 1000), temperature, humidity, pressure);
+    stmt.finalize();
+}
 
-        client.query('INSERT INTO data (unixtimestamp, temperature, humidity, pressure) VALUES($1, $2, $3, $4)', [
-            '1', temperature, humidity, pressure
-        ], function(err, result) {
-            done(err);
+/*getAll(function(res) {
+    console.log(JSON.stringify(res));
+});*/
 
-            if (err) {
-                return console.error('Query error', err);
-            }
-            console.log(result);
+/**
+ * Returns the current reading of the sensors
+ * @param  {Function} fn callback
+ * @return String      Error
+ */
+function currentReading(fn) {
+    db.serialize(function() {
+        db.all('SELECT * FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
+            fn(res[0]);
         });
     });
+
+}
+
+function getAll(fn) {
+    db.serialize(function() {
+        db.all('SELECT * FROM data', function(err, res) {
+            fn(res);
+        });
+    });
+
 }
