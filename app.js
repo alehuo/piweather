@@ -59,7 +59,6 @@ FUNCTIONS
  */
 function log(temperature, humidity, pressure) {
     console.log('temp: %d, humidity: %d, pressure: %d', temperature, humidity, pressure);
-    var db = new sqlite3.Database('weatherdata.db');
     var stmt = db.prepare('INSERT INTO data (unixtimestamp, temperature, humidity, pressure) VALUES(?, ?, ?, ?)');
     stmt.run(Math.floor(new Date().getTime() / 1000), temperature, humidity, pressure);
     stmt.finalize();
