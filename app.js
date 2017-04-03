@@ -26,7 +26,7 @@ redisClient.on('connect', function() {
 
 //Initialize database structure
 db.serialize(function() {
-    db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, unixtimestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
+    db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, timestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
 });
 
 //Initialize the application
@@ -70,7 +70,7 @@ FUNCTIONS
  */
 function log(temperature, humidity, pressure) {
     console.log('temp: %d, humidity: %d, pressure: %d', temperature, humidity, pressure);
-    var stmt = db.prepare('INSERT INTO data (unixtimestamp, temperature, humidity, pressure) VALUES(?, ?, ?, ?)');
+    var stmt = db.prepare('INSERT INTO data (timestamp, temperature, humidity, pressure) VALUES(?, ?, ?, ?)');
     stmt.run(Math.floor(new Date().getTime() / 1000), temperature, humidity, pressure);
     stmt.finalize();
 }
@@ -107,7 +107,7 @@ function currentReading(fn) {
  */
 function getCurrentReadingFromDatabase(fn) {
     db.serialize(function() {
-        db.all('SELECT temperature, pressure, humidity FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
+        db.all('SELECT timestamp, temperature, pressure, humidity FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
             fn(res[0]);
         });
     });
