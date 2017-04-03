@@ -1,4 +1,11 @@
-*** Raspberry Pi -sääpalvelu
+*** Raspberry Pi Weather Service ***
 
-Raspberry Pi -laitteella pyörivä Node.js-sovellus pollaa laitteeseen kytkettyjä sensoreita tietyn ajan välein tallentaen sensoreiden tiedot tietokantaan. Mitattavia arvoja ovat mm. lämpötila, kosteus ja paine.
-Joka päivän päätteeksi laite lähettää sähköpostit valittuihin osoitteisiin kertoen päivän maksimi, keski- ja minimi lämpötilan, kosteuden ja ilmanpaineen.
+A Node.js application that runs on a Raspberry Pi.
+
+The app polls sensors plugged into the Pi in 5 minute intervals and saves the data for later use. Currently we only log temperature and humidity.
+At the end of the day the Pi analyzes the captured data and sends emails to predefined e-mail addresses.
+The email message will include day's minimum, maximum and average temperatures and humidity.
+
+* Data is stored on an SQLite database and Redis is used to cache it to improve performance
+* Express is used with Twig to represent the current readings on a webpage
+* Measurements are scheduled with node-schedule
