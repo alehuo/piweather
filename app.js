@@ -81,14 +81,14 @@ function currentReading(fn) {
     redisClient.get('reading', function(err, reply) {
         //if the key exists, return int from redis
         if (reply === 1) {
-            fn(JSON.stringify(reply));
+            fn(reply);
         } else {
             //Else, fetch it from database
             getCurrentReadingFromDatabase(function(res) {
 
                 console.log('Fetching reading from database (Redis key expired)');
 
-                redisClient.set('reading', JSON.stringify(res));
+                redisClient.set('reading', res);
                 redisClient.expire('reading', 360);
 
                 fn(res);
@@ -105,7 +105,7 @@ function currentReading(fn) {
 function getCurrentReadingFromDatabase(fn) {
     db.serialize(function() {
         db.all('SELECT temperature, pressure, humidity FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
-            fn(res[0]);
+            fn(JSON.stringify(res[0]));
         });
     });
 }
@@ -131,7 +131,7 @@ function getAll(fn) {
  */
 app.get('/', (request, response) => {
     currentReading(function(res) {
-        response.render('index', JSON.parse(res));
+        response.render('index', res);
     });
 });
 
