@@ -85,6 +85,9 @@ function currentReading(fn) {
         } else {
             //Else, fetch it from database
             getCurrentReadingFromDatabase(function(res) {
+
+                console.log('Fetching reading from database (Redis key expired)');
+
                 redisClient.set('reading', res);
                 redisClient.expire('reading', 360);
 
