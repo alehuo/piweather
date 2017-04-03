@@ -16,13 +16,15 @@ var db = new sqlite3.cached.Database('weatherdata.sqlite');
 //Redis
 var redis = require('redis');
 var redisClient = redis.createClient();
+//Response time
+var rt = require('response-time');
 
 //Connect to a redis server
 redisClient.on('connect', function() {
     console.log('Redis client connected');
 });
 
-//Create tables
+//Initialize database structure
 db.serialize(function() {
     db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, unixtimestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
 });
@@ -31,9 +33,10 @@ db.serialize(function() {
 var app = express();
 
 //App configuration
-app.set('views', './templates');
-app.set('view engine', 'twig');
-app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', './templates'); //Template folder
+app.set('view engine', 'twig'); //Twig
+app.use(express.static(path.join(__dirname, 'public'))); //Set a static path for resources (js, css, etc..)
+app.use(rt()); //Response time header
 
 //App port
 var port = 3000
@@ -74,24 +77,24 @@ function log(temperature, humidity, pressure) {
 
 /**
  * Returns the current reading of the sensors.
+ * Redis is used to cache the result to speed things up.
  * @param  {Function} fn [description]
  * @return [type]        [description]
  */
 function currentReading(fn) {
     redisClient.get('reading', function(err, reply) {
         //if the key exists, return int from redis
-        if (reply === 1) {
+        if (reply) {
             fn(reply);
         } else {
+            console.log('Fetching reading from database (Redis key expired)');
             //Else, fetch it from database
             getCurrentReadingFromDatabase(function(res) {
-
-                console.log('Fetching reading from database (Redis key expired)');
-
-                redisClient.set('reading', res);
+                var data = JSON.stringify(res);
+                redisClient.set('reading', data);
+                //Redis expire time is 5 minutes.
                 redisClient.expire('reading', 360);
-
-                fn(res);
+                fn(data);
             });
         }
     });
@@ -105,7 +108,7 @@ function currentReading(fn) {
 function getCurrentReadingFromDatabase(fn) {
     db.serialize(function() {
         db.all('SELECT temperature, pressure, humidity FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
-            fn(JSON.stringify(res[0]));
+            fn(res[0]);
         });
     });
 }
@@ -127,18 +130,24 @@ function getAll(fn) {
 //Routes
 
 /**
- * Default route
+ * Status page
  */
 app.get('/', (request, response) => {
     currentReading(function(res) {
-        response.render('index', res);
+        var obj = JSON.parse(res);
+        response.render('index', obj);
     });
 });
 
 /**
- * Return a JSON object
+ * Return as a JSON string instead
  */
-app.get('/api', (request, response) => {});
+app.get('/api', (request, response) => {
+    currentReading(function(res) {
+        response.type('json');
+        response.send(res);
+    });
+});
 
 /**
  * Start server

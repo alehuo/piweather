@@ -16,6 +16,7 @@
     "node-schedule": "^1.2.1",
     "nodemailer": "^3.1.8",
     "redis": "^2.7.1",
+    "response-time": "^2.3.2",
     "sqlite3": "^3.1.8",
     "twig": "^1.10.4"
   }
