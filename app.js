@@ -13,6 +13,14 @@ var schedule = require('node-schedule');
 //SQLite3
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.cached.Database('weatherdata.sqlite');
+//Redis
+var redis = require('redis');
+var redisClient = redis.createClient();
+
+//Connect to a redis server
+redisClient.on('connect', function() {
+    console.log('Redis client connected');
+});
 
 //Create tables
 db.serialize(function() {
@@ -64,24 +72,46 @@ function log(temperature, humidity, pressure) {
     stmt.finalize();
 }
 
-/*getAll(function(res) {
-    console.log(JSON.stringify(res));
-});*/
-
 /**
- * Returns the current reading of the sensors
- * @param  {Function} fn callback
- * @return String      Error
+ * Returns the current reading of the sensors.
+ * @param  {Function} fn [description]
+ * @return [type]        [description]
  */
 function currentReading(fn) {
+    redisClient.get('reading', function(err, reply) {
+        //if the key exists, return int from redis
+        if (reply === 1) {
+            fn(reply);
+        } else {
+            //Else, fetch it from database
+            getCurrentReadingFromDatabase(function(res) {
+                redisClient.set('reading', res);
+                redisClient.expire('reading', 360);
+
+                fn(res);
+            });
+        }
+    });
+}
+
+/**
+ * Fetches the current reading from the database.
+ * @param  {Function} fn [description]
+ * @return [type]        [description]
+ */
+function getCurrentReadingFromDatabase(fn) {
     db.serialize(function() {
-        db.all('SELECT * FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
+        db.all('SELECT temperature, pressure, humidity FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
             fn(res[0]);
         });
     });
-
 }
 
+/**
+ * Fetches all results from the database.
+ * @param  {Function} fn [description]
+ * @return [type]        [description]
+ */
 function getAll(fn) {
     db.serialize(function() {
         db.all('SELECT * FROM data', function(err, res) {
@@ -101,6 +131,11 @@ app.get('/', (request, response) => {
         response.render('index', res);
     });
 });
+
+/**
+ * Return a JSON object
+ */
+app.get('/api', (request, response) => {});
 
 /**
  * Start server
