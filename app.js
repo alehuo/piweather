@@ -22,6 +22,8 @@ var rt = require('response-time');
 //Connect to a redis server
 redisClient.on('connect', function() {
     console.log('Redis client connected');
+    //Poll the sensors
+    poll();
 });
 
 //Initialize database structure
@@ -46,13 +48,7 @@ var port = 3000
  * @return {[type]} [description]
  */
 var sensorPoll = schedule.scheduleJob('*/5 * * * *', function() {
-    console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
-    //Just for testing purposes
-    var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
-    var humid = parseFloat(Math.random() * 60 + 40).toFixed(2); //Between 40 and 100
-    var press = 1020;
-    log(temp, humid, press);
-    console.log('Done logging sensor data.');
+    poll();
 });
 
 /*
@@ -60,6 +56,20 @@ var sensorPoll = schedule.scheduleJob('*/5 * * * *', function() {
 FUNCTIONS
 
  */
+
+/**
+ * Polling function.
+ * @return {[type]} [description]
+ */
+function poll() {
+    console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
+    //Just for testing purposes
+    var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
+    var humid = parseFloat(Math.random() * 60 + 40).toFixed(2); //Between 40 and 100
+    var press = 1020;
+    log(temp, humid, press);
+    console.log('Done logging sensor data.');
+}
 
 /**
  * Log a reading from the sensors.
