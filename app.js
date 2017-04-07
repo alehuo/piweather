@@ -21,6 +21,9 @@ var rt = require('response-time');
 
 //DHT22 sensor library
 var dht = require('node-dht-sensor');
+//GPIO pin and sensor type
+const gpio_pin = 4;
+const sensor_type = 22;
 
 //Connect to a redis server
 redisClient.on('connect', function() {
@@ -67,7 +70,7 @@ FUNCTIONS
 function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
 
-    dht.read(22, 4, function(err, temperature, humidity) {
+    dht.read(gpio_pin, sensor_type, function(err, temperature, humidity) {
         if (!err) {
             var press = 1020;
             log(temp.toFixed(1), humid.toFixed(1), press);

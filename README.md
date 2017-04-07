@@ -5,7 +5,7 @@
 A Node.js application that runs on a Raspberry Pi.
 
 The app polls sensors plugged into the Pi in 5 minute intervals and saves the data for later use. Currently we only log temperature and humidity.
-At the end of the day the Pi analyzes the captured data and sends emails to predefined e-mail addresses.
+At the end of each day the Pi analyzes the captured data and sends emails to predefined e-mail addresses.
 The email message will include day's minimum, maximum and average temperatures and humidity.
 
 ## Technical stuff ##
@@ -14,8 +14,7 @@ The email message will include day's minimum, maximum and average temperatures a
 * Express is used with Twig to represent the current readings on a webpage
 * Measurements are scheduled with node-schedule
 * The DHT22 sensor is used to log outdoor temperature & humidity. In addition, a MCP3002 D2A converter is wired to a TMP36 analog temperature sensor to log indoor temperature.
-
-* Currently only the DHT22 sensor is used. *
+* Currently the only sensor that logs data is the DHT22.
 
 ## Requirements ##
 
