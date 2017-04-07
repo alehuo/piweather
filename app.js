@@ -70,13 +70,13 @@ FUNCTIONS
 function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
 
-    dht.read(gpio_pin, sensor_type, function(err, temperature, humidity) {
+    dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
         if (!err) {
             var press = 1020;
-            log(temp.toFixed(1), humid.toFixed(1), press);
+            log(temperature.toFixed(1), humidity.toFixed(1), press);
             console.log('Done logging sensor data.');
         } else {
-            console.err('Error logging sensor data.');
+            console.error('Error logging sensor data: ', err);
         }
     });
 
