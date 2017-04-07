@@ -19,6 +19,9 @@ var redisClient = redis.createClient();
 //Response time
 var rt = require('response-time');
 
+//DHT22 sensor library
+var dht = require('node-dht-sensor');
+
 //Connect to a redis server
 redisClient.on('connect', function() {
     console.log('Redis client connected');
@@ -63,12 +66,21 @@ FUNCTIONS
  */
 function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
+
+    sensor.read(22, 4, function(err, temperature, humidity) {
+        if (!err) {
+            var press = 1020;
+            log(temp.toFixed(1), humid.toFixed(1), press);
+            console.log('Done logging sensor data.');
+        } else {
+            console.err('Error logging sensor data.');
+        }
+    });
+
     //Just for testing purposes
-    var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
-    var humid = parseFloat(Math.random() * 60 + 40).toFixed(2); //Between 40 and 100
-    var press = 1020;
-    log(temp, humid, press);
-    console.log('Done logging sensor data.');
+    //var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
+    //var humid = parseFloat(Math.random() * 60 + 40).toFixed(2); //Between 40 and 100
+
 }
 
 /**
