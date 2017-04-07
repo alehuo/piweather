@@ -1,4 +1,4 @@
-*** Raspberry Pi Weather Service ***
+### Raspberry Pi Weather Service
 
 A Node.js application that runs on a Raspberry Pi.
 
