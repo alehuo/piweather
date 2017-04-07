@@ -67,7 +67,7 @@ FUNCTIONS
 function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
 
-    sensor.read(22, 4, function(err, temperature, humidity) {
+    dht.read(22, 4, function(err, temperature, humidity) {
         if (!err) {
             var press = 1020;
             log(temp.toFixed(1), humid.toFixed(1), press);
