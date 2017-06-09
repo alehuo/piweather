@@ -1,20 +1,16 @@
-### Raspberry Pi Weather Service
+# Raspberry Pi Weather Service back end
 
-## Introduction ##
+## Introduction
 
 A Node.js application that runs on a Raspberry Pi.
 
-The app polls sensors plugged into the Pi in 5 minute intervals and saves the data for later use. Currently we only log temperature and humidity.
-At the end of each day the Pi analyzes the captured data and sends emails to predefined e-mail addresses.
-The email message will include day's minimum, maximum and average temperatures and humidity.
+The app polls sensors plugged into the Pi in 5 minute intervals and saves the data for later use. It also fetches local weather forecast data from Yahoo!'s weather API.
 
-## Technical stuff ##
+## Technical stuff
 
 * Data is stored on an SQLite database and Redis is used to cache it to improve performance
-* Express is used with Twig to represent the current readings on a webpage
 * Measurements are scheduled with node-schedule
-* The DHT22 sensor is used to log outdoor temperature & humidity. In addition, a MCP3002 D2A converter is wired to a TMP36 analog temperature sensor to log indoor temperature.
-* Currently the only sensor that logs data is the DHT22.
+* The DHT22 sensor is used to log indoor temperature & humidity. In addition, a MCP3002 D2A converter is wired to a TMP36 analog temperature sensor to provide a 'backup' incase the DHT22 fails.
 
 ## Requirements ##
 
@@ -29,5 +25,6 @@ The email message will include day's minimum, maximum and average temperatures a
 
 * Install Redis server, Node.js and the BCM2835 library
 * Connect your temperature sensor to your Raspberry Pi
-* Clone the repo & install the dependencies
+* Clone the repo & npm install
 * Configure the sensor settings to point to the correct GPIO pin & sensor type (if you use a sensor that is not DHT22, with a few modifications you will get it working).
+* redis-server && npm start

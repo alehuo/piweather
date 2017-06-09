@@ -1,9 +1,0 @@
-{
-    "host": "localhost",
-    "user": "postgres",
-    "password": "postgres",
-    "database": "piweather",
-    "port" : 5432,
-    "max" : 10,
-    "idleTimeoutMillis" : 600000
-}

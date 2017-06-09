@@ -1,6 +1,6 @@
 CREATE TABLE data (
   id SERIAL PRIMARY KEY,
-  timestamp INTEGER,
+  tstamp INTEGER,
   temperature DECIMAL,
   humidity DECIMAL,
   pressure DECIMAL

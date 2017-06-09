@@ -1,9 +1,15 @@
-/**
- * @author alehuo
- */
+//Configuration
+var cfg = require('./config/config');
+const gpio_pin = cfg.GPIO_PIN;
+const sensor_type = cfg.SENSOR_TYPE;
+const database_name = cfg.DB_NAME;
+
+console.log('The app is set to read GPIO pin #%d with sensor type of %d', gpio_pin, sensor_type);
 
 //Express
 var express = require('express');
+//Body parser
+var bodyParser = require('body-parser');
 //Twig
 var twig = require('twig');
 //Path
@@ -12,7 +18,7 @@ var path = require('path')
 var schedule = require('node-schedule');
 //SQLite3
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.cached.Database('weatherdata.sqlite');
+var db = new sqlite3.cached.Database(database_name);
 //Redis
 var redis = require('redis');
 var redisClient = redis.createClient();
@@ -20,20 +26,17 @@ var redisClient = redis.createClient();
 var rt = require('response-time');
 
 //DHT22 sensor library
-var dht = require('node-dht-sensor');
-//GPIO pin and sensor type
-const gpio_pin = 4;
-const sensor_type = 22;
+//var dht = require('node-dht-sensor');
 
 //Connect to a redis server
-redisClient.on('connect', function() {
+redisClient.on('connect', function () {
     console.log('Redis client connected');
-    //Poll the sensors
-    poll();
+    //Poll Raspberry Pi sensor
+    pollRpiSensor();
 });
 
 //Initialize database structure
-db.serialize(function() {
+db.serialize(function () {
     db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, timestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
 });
 
@@ -41,20 +44,22 @@ db.serialize(function() {
 var app = express();
 
 //App configuration
-app.set('views', './templates'); //Template folder
-app.set('view engine', 'twig'); //Twig
-app.use(express.static(path.join(__dirname, 'public'))); //Set a static path for resources (js, css, etc..)
 app.use(rt()); //Response time header
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(bodyParser.json());
+app.use(bodyParser.text());
 
 //App port
-var port = 3000
+var port = process.env.PORT | 3000;
 
 /**
  * Schedule a new task to poll the sensors every 5 minutes. Update variables as needed
  * @return {[type]} [description]
  */
-var sensorPoll = schedule.scheduleJob('*/5 * * * *', function() {
-    poll();
+var sensorPoll = schedule.scheduleJob('*/5 * * * *', function () {
+    pollRpiSensor();
 });
 
 /*
@@ -67,18 +72,17 @@ FUNCTIONS
  * Polling function.
  * @return {[type]} [description]
  */
-function poll() {
+function pollRpiSensor() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
 
-    dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
+    /*dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
         if (!err) {
-            var press = 1020;
-            log(temperature.toFixed(1), humidity.toFixed(1), press);
+            log(25, 95, 1020, 5, temperature.toFixed(1), humidity.toFixed(1));
             console.log('Done logging sensor data.');
         } else {
             console.error('Error logging sensor data: ', err);
         }
-    });
+    });*/
 
     //Just for testing purposes
     //var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
@@ -88,15 +92,17 @@ function poll() {
 
 /**
  * Log a reading from the sensors.
- * @param  {[type]} temperature [description]
- * @param  {[type]} humidity    [description]
- * @param  {[type]} pressure    [description]
- * @return {[type]}             [description]
+ * @param {*} outerTemperature 
+ * @param {*} outerHumidity 
+ * @param {*} outerPressure 
+ * @param {*} weatherCode 
+ * @param {*} innerTemperature 
+ * @param {*} innerHumidity 
  */
-function log(temperature, humidity, pressure) {
-    console.log('temp: %d, humidity: %d, pressure: %d', temperature, humidity, pressure);
-    var stmt = db.prepare('INSERT INTO data (timestamp, temperature, humidity, pressure) VALUES(?, ?, ?, ?)');
-    stmt.run(Math.floor(new Date().getTime() / 1000), temperature, humidity, pressure);
+function log(outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) {
+    console.log(outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity);
+    var stmt = db.prepare('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(?, ?, ?, ?, ?, ?)');
+    stmt.run(Math.floor(new Date().getTime() / 1000), outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity);
     stmt.finalize();
 }
 
@@ -107,14 +113,14 @@ function log(temperature, humidity, pressure) {
  * @return [type]        [description]
  */
 function currentReading(fn) {
-    redisClient.get('reading', function(err, reply) {
+    redisClient.get('reading', function (err, reply) {
         //if the key exists, return int from redis
         if (reply) {
             fn(reply);
         } else {
-            console.log('Fetching reading from database (Redis key expired)');
             //Else, fetch it from database
-            getCurrentReadingFromDatabase(function(res) {
+            console.log('Fetching reading from database (Redis key has expired)');
+            getCurrentReadingFromDatabase(function (res) {
                 var data = JSON.stringify(res);
                 redisClient.set('reading', data);
                 //Redis expire time is 5 minutes.
@@ -131,8 +137,8 @@ function currentReading(fn) {
  * @return [type]        [description]
  */
 function getCurrentReadingFromDatabase(fn) {
-    db.serialize(function() {
-        db.all('SELECT timestamp, temperature, pressure, humidity FROM data ORDER BY id DESC LIMIT 1', function(err, res) {
+    db.serialize(function () {
+        db.all('SELECT * FROM data ORDER BY id DESC LIMIT 1', function (err, res) {
             fn(res[0]);
         });
     });
@@ -144,8 +150,8 @@ function getCurrentReadingFromDatabase(fn) {
  * @return [type]        [description]
  */
 function getAll(fn) {
-    db.serialize(function() {
-        db.all('SELECT * FROM data', function(err, res) {
+    db.serialize(function () {
+        db.all('SELECT * FROM data', function (err, res) {
             fn(res);
         });
     });
@@ -153,22 +159,11 @@ function getAll(fn) {
 }
 
 //Routes
-
 /**
- * Status page
+ * Return current weather as a JSON string
  */
 app.get('/', (request, response) => {
-    currentReading(function(res) {
-        var obj = JSON.parse(res);
-        response.render('index', obj);
-    });
-});
-
-/**
- * Return as a JSON string instead
- */
-app.get('/api', (request, response) => {
-    currentReading(function(res) {
+    currentReading(function (res) {
         response.type('json');
         response.send(res);
     });
@@ -181,6 +176,5 @@ app.listen(port, (err) => {
     if (err) {
         return console.log('Error', err);
     }
-
-    console.log('Listening on port %d', port);
+    console.log('Back end is listening on port %d', port);
 })

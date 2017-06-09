@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.16.2",
+    "body-parser": "^1.17.2",
     "express": "^4.15.2",
     "html": "^1.0.0",
     "loadtest": "^2.3.0",
@@ -19,6 +21,7 @@
     "nodemailer": "^3.1.8",
     "redis": "^2.7.1",
     "response-time": "^2.3.2",
+    "sequelize": "^4.0.0",
     "sqlite3": "^3.1.8",
     "twig": "^1.10.4"
   }
