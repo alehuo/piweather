@@ -37,7 +37,8 @@ redisClient.on('connect', function () {
 
 //Initialize database structure
 db.serialize(function () {
-    db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, timestamp INTEGER, temperature DECIMAL, humidity DECIMAL, pressure DECIMAL)');
+    db.run('CREATE TABLE if not exists data (id SERIAL PRIMARY KEY, tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
+    db.run('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(' + Math.floor(new Date().getTime() / 1000) + ', 25, 95, 1020, 5, 10, 50)');
 });
 
 //Initialize the application
@@ -101,7 +102,7 @@ function pollRpiSensor() {
  */
 function log(outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) {
     console.log(outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity);
-    var stmt = db.prepare('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(?, ?, ?, ?, ?, ?)');
+    var stmt = db.prepare('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(?, ?, ?, ?, ?, ?, ?)');
     stmt.run(Math.floor(new Date().getTime() / 1000), outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity);
     stmt.finalize();
 }
