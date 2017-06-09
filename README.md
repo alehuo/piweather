@@ -34,3 +34,5 @@ The app polls sensors plugged into the Pi in 5 minute intervals and saves the da
     * GPIO pin and Sensor type should be determined by yourself
 * Start Redis server
 * *npm start*
+
+**Note: Back end is designed to run on a Pi, you can choose where to host the front end.**
