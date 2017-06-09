@@ -31,8 +31,8 @@ var rt = require('response-time');
 //Connect to a redis server
 redisClient.on('connect', function () {
     console.log('Redis client connected');
-    //Poll Raspberry Pi sensor
-    pollRpiSensor();
+    //Poll RPi & Weather API
+    poll();
 });
 
 //Initialize database structure
@@ -60,7 +60,7 @@ var port = process.env.PORT | 3000;
  * @return {[type]} [description]
  */
 var sensorPoll = schedule.scheduleJob('*/5 * * * *', function () {
-    pollRpiSensor();
+    poll();
 });
 
 /*
@@ -73,22 +73,17 @@ FUNCTIONS
  * Polling function.
  * @return {[type]} [description]
  */
-function pollRpiSensor() {
+function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
-
     /*dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
         if (!err) {
             log(25, 95, 1020, 5, temperature.toFixed(1), humidity.toFixed(1));
             console.log('Done logging sensor data.');
+            //Use axios to fetch from Yahoo!
         } else {
             console.error('Error logging sensor data: ', err);
         }
     });*/
-
-    //Just for testing purposes
-    //var temp = parseFloat(Math.random() * 20 + 10).toFixed(2); //Between 10 and 30
-    //var humid = parseFloat(Math.random() * 60 + 40).toFixed(2); //Between 40 and 100
-
 }
 
 /**
