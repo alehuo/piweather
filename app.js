@@ -29,7 +29,7 @@ var path = require('path')
 var schedule = require('node-schedule');
 //SQLite3
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.cached.Database(database_name);
+var db = new sqlite3.Database(database_name);
 //Redis
 var redis = require('redis');
 var redisClient = redis.createClient();
@@ -50,8 +50,8 @@ redisClient.on('connect', function () {
 
 //Initialize database structure
 db.serialize(function () {
-    db.run('CREATE TABLE if not exists data (tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
-    db.run('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(' + Math.floor(new Date().getTime() / 1000) + ', 25, 95, 1020, 5, 10, 50)');
+    db.run('CREATE TABLE if not exists data (id INTEGER PRIMARY KEY, tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
+    db.run('INSERT INTO data (id, tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(1, ' + Math.floor(new Date().getTime() / 1000) + ', 25, 95, 1020, 5, 10, 50)');
 });
 
 //Initialize the application
