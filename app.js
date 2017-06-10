@@ -50,7 +50,7 @@ redisClient.on('connect', function () {
 
 //Initialize database structure
 db.serialize(function () {
-    db.run('CREATE TABLE if not exists data (id INTEGER AUTO_INCREMENT, tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
+    db.run('CREATE TABLE if not exists data (id INTEGER PRIMARY_KEY AUTOINCREMENT, tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
     db.run('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(' + Math.floor(new Date().getTime() / 1000) + ', 25, 95, 1020, 5, 10, 50)');
 });
 
@@ -100,7 +100,7 @@ function poll() {
                 var atmosphere = res.data.query.results.channel.atmosphere;
                 var outerTemperature = res.data.query.results.channel.item.condition.temp;
                 var outerHumidity = atmosphere.humidity;
-                var pressure = res.data.query.results.channel.item.condition.pressure;
+                var pressure = atmosphere.pressure;
                 var weatherCode = res.data.query.results.channel.item.condition.code;
                 var lastUpdate = res.data.query.results.channel.lastBuildDate;
                 var city = res.data.query.results.channel.location.city;
