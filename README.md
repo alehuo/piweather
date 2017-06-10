@@ -34,7 +34,7 @@ The app polls sensors plugged into the Pi in 5 minute intervals and saves the da
 * Start Redis server
 * *npm start*
 
-**Note: Back end is designed to run on a Pi, you can choose where to host the front end.**
+**Note: Back end is designed to run on a Pi, but you can choose where to host the front end.**
 
 ## License ##
 
