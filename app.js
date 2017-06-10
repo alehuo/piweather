@@ -50,7 +50,7 @@ redisClient.on('connect', function () {
 
 //Initialize database structure
 db.serialize(function () {
-    db.run('CREATE TABLE if not exists data (id INTEGER PRIMARY_KEY, tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
+    db.run('CREATE TABLE if not exists data (tstamp INTEGER, outerTemperature DECIMAL, outerHumidity DECIMAL, outerPressure DECIMAL, weatherCode INTEGER, innerTemperature DECIMAL, innerHumidity DECIMAL)');
     db.run('INSERT INTO data (tstamp, outerTemperature, outerHumidity, outerPressure, weatherCode, innerTemperature, innerHumidity) VALUES(' + Math.floor(new Date().getTime() / 1000) + ', 25, 95, 1020, 5, 10, 50)');
 });
 
@@ -169,7 +169,7 @@ function currentReading(fn) {
  */
 function getCurrentReadingFromDatabase(fn) {
     db.serialize(function () {
-        db.all('SELECT * FROM data ORDER BY id DESC LIMIT 1', function (err, res) {
+        db.all('SELECT * FROM data ORDER BY tstamp DESC LIMIT 1', function (err, res) {
             fn(res[0]);
         });
     });
@@ -182,7 +182,7 @@ function getCurrentReadingFromDatabase(fn) {
  */
 function getAll(fn) {
     db.serialize(function () {
-        db.all('SELECT * FROM data ORDER BY id DESC', function (err, res) {
+        db.all('SELECT * FROM data ORDER BY tstamp DESC', function (err, res) {
             fn(res);
         });
     });
