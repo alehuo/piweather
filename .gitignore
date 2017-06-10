@@ -1,3 +1,5 @@
 node_modules
 *.sqlite
 npm-debug.log
+config.production.js
+config.development.js

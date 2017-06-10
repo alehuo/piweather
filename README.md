@@ -27,8 +27,8 @@ The app polls sensors plugged into the Pi in 5 minute intervals and saves the da
 * Connect your temperature sensor to your Raspberry Pi
 * Clone the repo & npm install
 * Configure the sensor settings to point to the correct GPIO pin & sensor type (if you use a sensor that is not DHT22, with a few modifications you will get it working).
-* Open config -folder and rename 'appConfig.js.template' to 'appConfig.js'
-* Set your Weather and GPIO settings
+* Open config -folder and rename 'config.production.js.template' to 'config.production.js' (If you are using a development environment, please rename config.development.js.template instead)
+* productionet your Weather and GPIO production
     * WOEID for Helsinki is 565346 (Please edit the default query)
     * GPIO pin and Sensor type should be determined by yourself
 * Start Redis server
