@@ -28,9 +28,8 @@ The app polls sensors plugged into the Pi in 5 minute intervals and saves the da
 * Clone the repo & npm install
 * Configure the sensor settings to point to the correct GPIO pin & sensor type (if you use a sensor that is not DHT22, with a few modifications you will get it working).
 * Open config -folder and rename 'appConfig.js.template' to 'appConfig.js'
-* Set your WOEID, RSS Feed and GPIO settings
-    * WOEID for Helsinki is 565346
-    * API url for Finnish Weather News (MTV.fi): http://www.mtv.fi/api/feed/rss/uutiset_saa
+* Set your Weather and GPIO settings
+    * WOEID for Helsinki is 565346 (Please edit the default query)
     * GPIO pin and Sensor type should be determined by yourself
 * Start Redis server
 * *npm start*

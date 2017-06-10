@@ -1,9 +1,20 @@
 //Configuration
-var cfg = require('./config/config');
-const gpio_pin = cfg.GPIO_PIN;
-const sensor_type = cfg.SENSOR_TYPE;
-const database_name = cfg.DB_NAME;
+if (process.env.NODE_ENV === 'production') {
+    var cfg = require('./config/config.production');
+} else if (process.env.NODE_ENV === 'development') {
+    var cfg = require('./config/config.development');
+} else {
+    console.error('No configuration ENV variable set!');
+    process.exit(1);
+}
 
+const gpio_pin = cfg.rpi.GPIO_PIN;
+const sensor_type = cfg.rpi.SENSOR_TYPE;
+const database_name = cfg.db.DB_NAME;
+const city_id = cfg.weather.WOEID;
+const api_url = cfg.weather.API_URL;
+
+console.log('Detected app environment: %s', process.env.NODE_ENV);
 console.log('The app is set to read GPIO pin #%d with sensor type of %d', gpio_pin, sensor_type);
 
 //Express
@@ -24,9 +35,11 @@ var redis = require('redis');
 var redisClient = redis.createClient();
 //Response time
 var rt = require('response-time');
+//Axios
+var axios = require('axios');
 
 //DHT22 sensor library
-//var dht = require('node-dht-sensor');
+var dht = require('node-dht-sensor');
 
 //Connect to a redis server
 redisClient.on('connect', function () {
@@ -75,7 +88,7 @@ FUNCTIONS
  */
 function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
-    /*dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
+    dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
         if (!err) {
             log(25, 95, 1020, 5, temperature.toFixed(1), humidity.toFixed(1));
             console.log('Done logging sensor data.');
@@ -83,7 +96,7 @@ function poll() {
         } else {
             console.error('Error logging sensor data: ', err);
         }
-    });*/
+    });
 }
 
 /**
@@ -168,9 +181,9 @@ app.get('/', (request, response) => {
 /**
  * Start server
  */
-app.listen(port, (err) => {
+app.listen(cfg.server.SERVER_PORT, (err) => {
     if (err) {
         return console.log('Error', err);
     }
-    console.log('Back end is listening on port %d', port);
+    console.log('Back end is listening on port %d', cfg.server.SERVER_PORT);
 })
