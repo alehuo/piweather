@@ -101,6 +101,8 @@ function poll() {
                 var outerTemperature = res.data.query.results.channel.item.condition.temp;
                 var outerHumidity = atmosphere.humidity;
                 var pressure = atmosphere.pressure;
+                pressure = pressure / 33.8638866667;
+                pressure = pressure.toFixed(2);
                 var weatherCode = res.data.query.results.channel.item.condition.code;
                 var lastUpdate = res.data.query.results.channel.lastBuildDate;
                 var city = res.data.query.results.channel.location.city;
@@ -180,7 +182,7 @@ function getCurrentReadingFromDatabase(fn) {
  */
 function getAll(fn) {
     db.serialize(function () {
-        db.all('SELECT * FROM data', function (err, res) {
+        db.all('SELECT * FROM data ORDER BY id DESC', function (err, res) {
             fn(res);
         });
     });
@@ -191,8 +193,15 @@ function getAll(fn) {
 /**
  * Return current weather as a JSON string
  */
-app.get('/', (request, response) => {
+app.get('/current', (request, response) => {
     currentReading(function (res) {
+        response.type('json');
+        response.send(res);
+    });
+});
+
+app.get('/all', (request, response) => {
+    getAll(function (res) {
         response.type('json');
         response.send(res);
     });
