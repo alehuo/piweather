@@ -19,6 +19,8 @@ console.log('The app is set to read GPIO pin #%d with sensor type of %d', gpio_p
 
 //Express
 var express = require('express');
+//CORS
+var cors = require('cors');
 //Body parser
 var bodyParser = require('body-parser');
 //Twig
@@ -59,6 +61,7 @@ var app = express();
 
 //App configuration
 app.use(rt()); //Response time header
+app.use(cors()); //Allow cross origin
 app.use(bodyParser.urlencoded({
     extended: true
 }));
