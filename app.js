@@ -88,13 +88,33 @@ FUNCTIONS
  */
 function poll() {
     console.log('Logging sensor data (timestamp: %d)', Math.floor(new Date().getTime() / 1000));
-    dht.read(sensor_type, gpio_pin, function(err, temperature, humidity) {
-        if (!err) {
-            log(25, 95, 1020, 5, temperature.toFixed(1), humidity.toFixed(1));
-            console.log('Done logging sensor data.');
+    dht.read(sensor_type, gpio_pin, function (error, temperature, humidity) {
+        if (!error) {
             //Use axios to fetch from Yahoo!
+            axios.get(cfg.weather.API_URL, {
+                params: {
+                    q: cfg.weather.QUERY,
+                    format: 'json'
+                }
+            }).then((res) => {
+                var atmosphere = res.data.query.results.channel.atmosphere;
+                var outerTemperature = res.data.query.results.channel.item.condition.temp;
+                var outerHumidity = atmosphere.humidity;
+                var pressure = res.data.query.results.channel.item.condition.pressure;
+                var weatherCode = res.data.query.results.channel.item.condition.code;
+                var lastUpdate = res.data.query.results.channel.lastBuildDate;
+                var city = res.data.query.results.channel.location.city;
+                var region = res.data.query.results.channel.location.region;
+                var innerTemperature = temperature.toFixed(1);
+                var innerHumidity = humidity.toFixed(1);
+                log(outerTemperature, outerHumidity, pressure, weatherCode, innerTemperature, innerHumidity);
+                console.log('Weather data updated');
+            }).catch((err) => {
+                console.log(err);
+            });
+            console.log('Done logging sensor data.');
         } else {
-            console.error('Error logging sensor data: ', err);
+            console.error('Error logging sensor data: ', error);
         }
     });
 }
